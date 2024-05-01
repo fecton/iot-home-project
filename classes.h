@@ -1,3 +1,5 @@
+#include "DHT.h"
+
 class LED_Status {
   public:
     void static turn_off_all(int LED_YELLOW, int LED_RED, int BUZZER) {
@@ -29,7 +31,13 @@ class Base_Sensor {
 
     String SENSOR_NAME;
 
-    Base_Sensor(int led_warning, int led_critical, int buzzer_critical, int warning_treshold, int critical_threshold, String sensor_name) {
+    int SENSOR_INPUT;
+
+    explicit Base_Sensor(
+      int led_warning, int led_critical, int buzzer_critical,
+      int warning_treshold, int critical_threshold, String sensor_name
+    ) 
+    {
       LED_WARNING_STATUS = led_warning;
       LED_CRITICAL_STATUS = led_critical;
       BUZZER_CRITICAL_OVERALL = buzzer_critical;
@@ -72,5 +80,38 @@ class Base_Sensor {
     bool isAboveWarningThreshold(int sensor_value) {
       return sensor_value > WARNING_THRESHOLD;
     }
+};
 
+class Temp_Sensor {
+  public:
+    float static readTemperature(int sensor_input) {
+      DHT dht22(sensor_input, DHT22);
+      dht22.begin();
+      return dht22.readTemperature();
+    }
+
+    float static readHumidity(int sensor_input) {
+      DHT dht22(sensor_input, DHT22);
+      dht22.begin();
+      return dht22.readHumidity();
+    }
+
+};
+
+class Distance_Sensor {
+  public:
+    int static readDistance(int trig_input, int echo_input) {
+      int distance, duration;
+
+      digitalWrite(trig_input, LOW); 
+      delayMicroseconds(2);
+      // Sets the trigPin on HIGH state for 10 micro seconds
+      digitalWrite(trig_input, HIGH); 
+      delayMicroseconds(10);
+      digitalWrite(trig_input, LOW);
+      duration = pulseIn(echo_input, HIGH); // Reads the echoPin, returns the sound wave travel time in microseconds
+      distance= duration*0.034/2;
+
+      return distance;
+    }
 };
