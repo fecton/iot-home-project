@@ -9,26 +9,37 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Overall status
-#define BUTTON_DISABLE_CRITICAL_OVERALL 3
-#define BUZZER_CRITICAL_OVERALL         4
+#define BUZZER_CRITICAL_OVERALL 9
 
 // Temperature
-#define TEMP_INPUT               A2
-#define LED_TEMP_CRITICAL_STATUS 7
-#define LED_TEMP_WARNING_STATUS  8
+#define TEMP_INPUT               A3
+#define LED_TEMP_CRITICAL_STATUS 10
+#define LED_TEMP_WARNING_STATUS  11
 
 // Gas
-#define GAS_INPUT               A3
-#define LED_GAS_CRITICAL_STATUS 9
-#define LED_GAS_WARNING_STATUS  10
+#define GAS_INPUT               A2
+#define LED_GAS_CRITICAL_STATUS 12
+#define LED_GAS_WARNING_STATUS  13
 
 // Distance
-#define DISTANCE_ECHO_INPUT 11
-#define DISTANCE_TRIG_INPUT 12
+#define DISTANCE_ECHO_INPUT 8
+#define DISTANCE_TRIG_INPUT 7
+#define LED_DISTANCE_CRITICAL_STATUS 4
+#define LED_DISTANCE_WARNING_STATUS 3
 
 // Disabling
-#define BUTTON_DISABLE_STATUS 3
-#define LED_DISABLE_STATUS 2
+#define BUTTON_DISABLE_STATUS 5
+#define LED_DISABLE_STATUS 6
+
+// LED display
+#define DISPLAY_SDA A4
+#define DISPLAY_SDA A5
+
+// RGB led
+#define LED_RED_INPUT 2
+#define LED_GREEN_INPUT 3
+#define LED_BLUE_INPUT A1
+
 
 void testComponents() {
   // LED
@@ -48,10 +59,20 @@ void setup() {
 
   // Pin LEDs
   pinMode(LED_DISABLE_STATUS, OUTPUT);
+
   pinMode(LED_TEMP_CRITICAL_STATUS,     OUTPUT);
   pinMode(LED_TEMP_WARNING_STATUS,      OUTPUT);
+
   pinMode(LED_GAS_CRITICAL_STATUS,      OUTPUT);
   pinMode(LED_GAS_WARNING_STATUS,       OUTPUT);
+
+  pinMode(LED_DISTANCE_CRITICAL_STATUS, OUTPUT);
+  pinMode(LED_DISTANCE_WARNING_STATUS,  OUTPUT);
+
+  // Pin RGB
+  pinMode(LED_RED_INPUT, OUTPUT);
+  pinMode(LED_GREEN_INPUT, OUTPUT);
+  pinMode(LED_BLUE_INPUT, OUTPUT);
 
   // Pin Buzzers
   pinMode(BUZZER_CRITICAL_OVERALL, OUTPUT);
@@ -77,10 +98,30 @@ void setup() {
 }
 
 bool status_state = true;
+bool RGB[7][3] = {
+  {0,0,1},
+  {0,1,0},
+  {0,1,1},
+  {1,0,0},
+  {1,0,1},
+  {1,1,0},
+  {1,1,1}
+};
+
+int rgb_index = 0;
+
 
 void loop() {
   lcd.clear();
- 
+
+  digitalWrite(LED_RED_INPUT,   RGB[rgb_index][0]);
+  digitalWrite(LED_GREEN_INPUT, RGB[rgb_index][1]);
+  digitalWrite(LED_BLUE_INPUT,  RGB[rgb_index][2]);
+
+  if(rgb_index == 7) { rgb_index = 0; }
+  else               { rgb_index++;   }
+
+
   if(digitalRead(BUTTON_DISABLE_STATUS)) {
     status_state = !status_state;
   }
@@ -105,12 +146,13 @@ void loop() {
 
   // Distance
   Base_Sensor distance_sensor = Base_Sensor(
-    0,
-    0,
+    LED_DISTANCE_WARNING_STATUS,
+    LED_DISTANCE_CRITICAL_STATUS,
     BUZZER_CRITICAL_OVERALL,
     800, 900, "Distance"
   );
   int DISTANCE_LEVEL = 1000 - Distance_Sensor::readDistance(DISTANCE_TRIG_INPUT, DISTANCE_ECHO_INPUT);
+
 
   if(status_state) {
     digitalWrite(LED_DISABLE_STATUS, LOW);
@@ -130,9 +172,20 @@ void loop() {
   }
   else {
     digitalWrite(LED_DISABLE_STATUS, HIGH);
+
+    digitalWrite(LED_TEMP_CRITICAL_STATUS,     LOW);
+    digitalWrite(LED_TEMP_WARNING_STATUS,      LOW);
+    digitalWrite(LED_GAS_CRITICAL_STATUS,      LOW);
+    digitalWrite(LED_GAS_WARNING_STATUS,       LOW);
+    digitalWrite(LED_DISTANCE_CRITICAL_STATUS, LOW);
+    digitalWrite(LED_DISTANCE_WARNING_STATUS,  LOW);
+  
+    lcd.print("I am sleeping...");
+    lcd.setCursor(0,1);
+    lcd.print("__(^_^)__");
+
+    Serial.println("I am sleeping... ^_^");
   }
-
-
 
   delay(250);
 }

@@ -49,20 +49,18 @@ class Base_Sensor {
     }
 
     void status(int sensor_value) {
+      Serial.print(SENSOR_NAME);
       if(isAboveCriticalTreshold(sensor_value)) {
         LED_Status::turn_on_red_and_buzzer(LED_WARNING_STATUS, LED_CRITICAL_STATUS, BUZZER_CRITICAL_OVERALL);
-        Serial.print(SENSOR_NAME);
         Serial.print(": 🔴 ");
       }
       else {
         if (isAboveWarningThreshold(sensor_value)) {
           LED_Status::turn_on_yellow(LED_WARNING_STATUS, LED_CRITICAL_STATUS, BUZZER_CRITICAL_OVERALL);
-          Serial.print(SENSOR_NAME);
           Serial.print(": 🟡 ");
         }
         else {
           LED_Status::turn_off_all(LED_WARNING_STATUS, LED_CRITICAL_STATUS, BUZZER_CRITICAL_OVERALL);
-          Serial.print(SENSOR_NAME);
           Serial.print(": 🟢 ");
         }
       }
@@ -74,11 +72,11 @@ class Base_Sensor {
 
   private:
     bool isAboveCriticalTreshold(int sensor_value) {
-      return sensor_value > CRITICAL_THRESHOLD;
+      return sensor_value >= CRITICAL_THRESHOLD;
     }
 
     bool isAboveWarningThreshold(int sensor_value) {
-      return sensor_value > WARNING_THRESHOLD;
+      return sensor_value >= WARNING_THRESHOLD;
     }
 };
 
